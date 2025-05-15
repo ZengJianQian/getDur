@@ -9,6 +9,6 @@
         "Access-Control-Expose-Headers": "X-Video-Duration"
       }
     },
-    { "src": "/(.*)", "dest": "/public/$1" } // 静态文件路由
+    { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }
