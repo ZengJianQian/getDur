@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/.*",
+      "dest": "/api/duration.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "X-Video-Duration"
+      }
+    },
+    { "src": "/(.*)", "dest": "/public/$1" } // 静态文件路由
+  ]
+}

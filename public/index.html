@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>视频时长获取工具</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        video {
+            width: 100%;
+            background: #000;
+            margin: 20px 0;
+        }
+
+        #durationDisplay {
+            font-size: 18px;
+            color: #333;
+        }
+
+        #responseHeader {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>视频时长获取工具</h1>
+    <p>通过URL参数传递视频地址（如 ?videoUrl=https://example.com/video.mp4）</p>
+
+    <video id="myVideo" controls crossorigin="anonymous"></video>
+    <p id="durationDisplay">视频加载中...</p>
+    <div id="responseHeader"></div>
+
+    <script>
+        // 从URL参数获取视频地址
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoUrl = urlParams.get('videoUrl');
+
+        if (!videoUrl) {
+            document.getElementById('durationDisplay').textContent = '请通过URL参数videoUrl传递视频地址';
+        } else {
+            const video = document.getElementById('myVideo');
+            video.src = videoUrl;
+
+            // 格式化时长为HH:MM:SS
+            const formatDuration = (seconds) => {
+                const pad = (num) => num.toString().padStart(2, '0');
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
+            };
+
+            // 监听元数据加载完成事件
+            video.addEventListener('loadedmetadata', async function () {
+                const duration = video.duration;
+                const formattedDuration = formatDuration(duration);
+
+                // 显示时长信息
+                document.getElementById('durationDisplay').textContent =
+                    `视频时长：${formattedDuration} (${duration.toFixed(2)}秒)`;
+
+                try {
+                    // 发送时长到服务端（需替换为你的Vercel服务地址）
+                    const response = await fetch('https://your-vercel-app.vercel.app/api/get-duration', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            duration,
+                            videoUrl,
+                            formattedDuration
+                        })
+                    });
+
+                    // 显示服务端响应（含自定义头）
+                    const result = {
+                        headers: {
+                            'X-Video-Duration': response.headers.get('X-Video-Duration')
+                        },
+                        body: await response.json()
+                    };
+                    document.getElementById('responseHeader').innerHTML =
+                        `<strong>服务端响应：</strong><pre>${JSON.stringify(result, null, 2)}</pre>`;
+                } catch (error) {
+                    console.error('API请求失败:', error);
+                    document.getElementById('responseHeader').textContent =
+                        'API请求失败（需部署服务端代码到Vercel）';
+                }
+            });
+
+            // iOS兼容性处理
+            video.addEventListener('play', () => video.pause(), { once: true });
+        }
+    </script>
+</body>
+
+</html>
